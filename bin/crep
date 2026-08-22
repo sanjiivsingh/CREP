@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# -------------------------------------------------
+# CLI identity
+# -------------------------------------------------
+
+CLI_NAME="$(basename "$0")"
+CREP_NAME="CREP"
+
+# -------------------------------------------------
+# Project metadata
+# -------------------------------------------------
+
+CREP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CREP_VERSION="$(cat "$CREP_ROOT/VERSION")"
+
+source "$CREP_ROOT/lib/state.sh"
+source "$CREP_ROOT/lib/output.sh"
+source "$CREP_ROOT/lib/arguments.sh"
+source "$CREP_ROOT/lib/environment.sh"
+source "$CREP_ROOT/lib/validation.sh"
+source "$CREP_ROOT/lib/repository_state.sh"
+source "$CREP_ROOT/lib/repository_analysis.sh"
+source "$CREP_ROOT/lib/local.sh"
+source "$CREP_ROOT/lib/github.sh"
+source "$CREP_ROOT/lib/content.sh"
+source "$CREP_ROOT/lib/git_remote.sh"
+source "$CREP_ROOT/lib/repository_handlers.sh"
+source "$CREP_ROOT/lib/repository_plan.sh"
+
+# ==============================
+# Functions
+# ==============================
+run_crep() {
+
+    show_banner
+
+    validate_inputs || return 1
+    show_input_validation
+
+    show_configuration
+
+    validate_environment || return 1
+    show_environment
+
+    validate_dependencies || return 1
+    show_dependencies
+
+    determine_repository_state || return 1
+    show_repository_state
+
+    execute_repository_plan || return 1
+}
+main() {
+
+    initialize_state
+
+    parse_arguments "$@" || exit 1
+
+    case "$CLI_ACTION" in
+
+        help)
+            show_help
+            exit 0
+            ;;
+        version)
+            show_version
+            exit 0
+            ;;
+        run)
+            run_crep || exit 1
+            ;;
+        *)
+            print_error "Unknown CLI action."
+            exit 1
+            ;;
+    esac
+}
+# ===============================================================
+# Main
+# ===============================================================
+main "$@"
