@@ -129,7 +129,7 @@ show_spinner() {
         return 0
     fi
 
-    local spinner='|/-\'
+    local spinner="|/-\\"
     local start
     local elapsed
     local index=0
