@@ -1,0 +1,70 @@
+name: CREP CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "test/**"
+      - "docs/**"
+      - "chore/**"
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+
+  test:
+    name: Test CREP
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set executable permissions
+        shell: bash
+        run: |
+          chmod +x bin/crep
+          chmod +x tests/*.sh
+          chmod +x install.sh
+          chmod +x uninstall.sh
+
+      - name: Show environment
+        shell: bash
+        run: |
+          echo "Operating System: $(uname -s)"
+          echo "Architecture: $(uname -m)"
+          echo "Bash:"
+          bash --version | head -n 1
+          echo "Git:"
+          git --version
+
+      - name: Run test suite
+        shell: bash
+        run: |
+          ./tests/test_runner.sh
+
+      - name: Run ShellCheck
+        shell: bash
+        run: |
+          shellcheck -x \
+            tests/*.sh \
+            install.sh \
+            uninstall.sh
+
+      - name: CLI version smoke test
+        shell: bash
+        run: |
+          ./bin/crep --version
+
+      - name: CLI help smoke test
+        shell: bash
+        run: |
+          ./bin/crep --help
