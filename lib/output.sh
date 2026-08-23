@@ -11,21 +11,32 @@ BLUE='\033[34m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
+
 # -------------------------------------------------
 # Output Helpers
 # -------------------------------------------------
+
 print_error() {
     printf '%bError:%b %s\n' "$RED" "$RESET" "$1"
 }
+
 print_success() {
     printf '%bSuccess:%b %s\n' "$GREEN" "$RESET" "$1"
 }
+
 print_warning() {
     printf '%bWarning:%b %s\n' "$YELLOW" "$RESET" "$1"
 }
+
 print_info() {
     printf '%-25b : %b\n' "$1" "$2"
 }
+
+
+# -------------------------------------------------
+# Help
+# -------------------------------------------------
+
 show_help() {
 
     echo
@@ -55,6 +66,7 @@ show_help() {
     printf "  --readme <file>             Use a file as README content\n"
     printf "  --gitignore <template>      Use a GitHub gitignore template\n"
     printf "  --description <text>        Set repository description\n"
+    printf "  --dry-run                   Show planned actions without making changes\n"
     printf "  -h, --help                  Show this help message\n"
 
     echo
@@ -64,6 +76,7 @@ show_help() {
     printf "  %s my-project --local\n" "$CLI_NAME"
     printf "  %s my-project --local ./projects/my-project\n" "$CLI_NAME"
     printf "  %s my-project --private\n" "$CLI_NAME"
+    printf "  %s my-project --local --dry-run\n" "$CLI_NAME"
 
     echo
 
@@ -74,11 +87,23 @@ show_help() {
 
     echo
 }
+
+
+# -------------------------------------------------
+# Version
+# -------------------------------------------------
+
 show_version() {
 
     printf '%s %s\n' "$CREP_NAME" "$CREP_VERSION"
 
 }
+
+
+# -------------------------------------------------
+# Banner
+# -------------------------------------------------
+
 show_banner() {
 
     echo
@@ -99,12 +124,21 @@ show_banner() {
 
     printf "%b\n" "${BOLD}${GREEN}  Code Repository Environment Provisioner${RESET}"
     printf "%b\n" "  GitHub + Git project lifecycle automation"
+
     printf '%bVersion:%b  %s  •  %bSanjeev Singh%b\n' \
         "$BLUE$BOLD" "$RESET" "$CREP_VERSION" "$RED" "$RESET"
+
     printf '%bGitHub:%b  %bhttps://github.com/sanjiivsingh%b\n' \
         "$BLUE" "$RESET" "$RED" "$RESET"
+
     echo
 }
+
+
+# -------------------------------------------------
+# Input Validation
+# -------------------------------------------------
+
 show_input_validation() {
 
     echo
@@ -137,6 +171,12 @@ show_input_validation() {
             "${YELLOW}none${RESET}"
     fi
 }
+
+
+# -------------------------------------------------
+# Configuration
+# -------------------------------------------------
+
 show_configuration() {
 
     echo
@@ -165,7 +205,21 @@ show_configuration() {
 
     print_info "Description" \
         "${DESCRIPTION:-${YELLOW}none${RESET}}"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        print_info "Execution mode" \
+            "${YELLOW}dry-run${RESET}"
+    else
+        print_info "Execution mode" \
+            "${GREEN}normal${RESET}"
+    fi
 }
+
+
+# -------------------------------------------------
+# Environment
+# -------------------------------------------------
+
 show_environment() {
 
     echo
@@ -175,6 +229,12 @@ show_environment() {
     print_info "Architecture" "$ARCHITECTURE"
     print_info "Shell" "$SHELL_NAME"
 }
+
+
+# -------------------------------------------------
+# Dependencies
+# -------------------------------------------------
+
 show_dependencies() {
 
     echo
@@ -204,6 +264,12 @@ show_dependencies() {
             "${RED}not authenticated${RESET}"
     fi
 }
+
+
+# -------------------------------------------------
+# Repository State
+# -------------------------------------------------
+
 show_repository_state() {
 
     echo
@@ -223,11 +289,20 @@ show_repository_state() {
     if [[ "$GITHUB_STATUS" -eq 0 ]]; then
         print_info "GitHub repository" \
             "${GREEN}exists${RESET}"
-    else
+    elif [[ "$GITHUB_STATUS" -eq 1 ]]; then
         print_info "GitHub repository" \
             "${RED}does not exist${RESET}"
+    else
+        print_info "GitHub repository" \
+            "${YELLOW}unknown${RESET}"
     fi
 }
+
+
+# -------------------------------------------------
+# Confirmation
+# -------------------------------------------------
+
 confirm_action() {
 
     local message="$1"
@@ -237,13 +312,93 @@ confirm_action() {
     read -r answer
 
     case "$answer" in
+
         y|Y|yes|YES)
+
             return 0
+
             ;;
 
         *)
+
             print_warning "Action cancelled."
+
             return 1
+
             ;;
+
+    esac
+}
+
+
+# =================================================
+# Execution Summary
+# =================================================
+
+record_execution_action() {
+
+    local action="$1"
+
+    if [[ -z "${EXECUTION_ACTIONS:-}" ]]; then
+
+        EXECUTION_ACTIONS="$action"
+
+    else
+
+        EXECUTION_ACTIONS="${EXECUTION_ACTIONS}"$'\n'"$action"
+
+    fi
+}
+
+
+show_execution_summary() {
+
+    echo
+    printf "%b\n" "${BLUE}${BOLD}Execution summary:${RESET}"
+
+    if [[ -n "${EXECUTION_ACTIONS:-}" ]]; then
+
+        while IFS= read -r action; do
+
+            print_info "Action" "$action"
+
+        done <<< "$EXECUTION_ACTIONS"
+
+    else
+
+        print_info "Action" "No changes performed."
+
+    fi
+
+    echo
+
+    case "${EXECUTION_RESULT:-}" in
+
+        success)
+
+            print_success "Result: SUCCESS"
+
+            ;;
+
+        no_changes)
+
+            print_info "Result" \
+                "${YELLOW}NO CHANGES REQUIRED${RESET}"
+
+            ;;
+
+        failed)
+
+            print_error "Result: FAILED"
+
+            ;;
+
+        *)
+
+            print_info "Result" \
+                "${YELLOW}UNKNOWN${RESET}"
+
+            ;;
+
     esac
 }

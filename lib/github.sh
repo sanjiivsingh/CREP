@@ -3,18 +3,31 @@
 # -------------------------------------------------
 # GitHub operations
 # -------------------------------------------------
+
 create_github_repository() {
 
     print_info "Action" "${YELLOW}Creating GitHub repository...${RESET}"
 
     if "${GH_CMD[@]}" >/dev/null 2>&1; then
+
         print_success "GitHub repository created successfully."
+
+        record_execution_action "GitHub repository: created"
+
         return 0
+
     else
+
         print_error "Failed to create GitHub repository."
+
+        EXECUTION_RESULT="failed"
+
         return 1
+
     fi
 }
+
+
 clone_github_repository() {
 
     local github_repo="$GITHUB_USER/$REPO_NAME"
@@ -27,6 +40,8 @@ clone_github_repository() {
     if [[ -z "$LOCAL_PATH" ]]; then
 
         print_error "Local path is not defined."
+
+        EXECUTION_RESULT="failed"
 
         return 1
 
@@ -41,6 +56,8 @@ clone_github_repository() {
 
         print_error \
             "Local path already exists: $LOCAL_PATH"
+
+        EXECUTION_RESULT="failed"
 
         return 1
 
@@ -65,6 +82,12 @@ clone_github_repository() {
         print_info "Git history" "downloaded"
         print_info "Git remote" "origin configured"
 
+        record_execution_action "GitHub repository: cloned"
+        record_execution_action "Local directory: created"
+        record_execution_action "Git repository: cloned"
+        record_execution_action "Git history: downloaded"
+        record_execution_action "Git remote: configured"
+
         return 0
 
     fi
@@ -76,8 +99,12 @@ clone_github_repository() {
 
     print_error "Failed to clone GitHub repository."
 
+    EXECUTION_RESULT="failed"
+
     return 1
 }
+
+
 push_to_github() {
 
     local current_branch=""
@@ -91,6 +118,8 @@ push_to_github() {
     if [[ ! -d "$LOCAL_PATH/.git" ]]; then
 
         print_error "Git repository does not exist: $LOCAL_PATH"
+
+        EXECUTION_RESULT="failed"
 
         return 1
     fi
@@ -108,6 +137,8 @@ push_to_github() {
 
         print_error "Unable to determine current Git branch."
 
+        EXECUTION_RESULT="failed"
+
         return 1
     fi
 
@@ -124,6 +155,8 @@ push_to_github() {
 
         print_error "Git remote 'origin' is not configured."
 
+        EXECUTION_RESULT="failed"
+
         return 1
     fi
 
@@ -138,7 +171,10 @@ push_to_github() {
 
         print_info "Git push" "completed"
 
+        record_execution_action "Git push: completed"
+
         return 0
+
     fi
 
 
@@ -148,8 +184,12 @@ push_to_github() {
 
     print_error "Failed to push changes to GitHub."
 
+    EXECUTION_RESULT="failed"
+
     return 1
 }
+
+
 build_gh_command() {
 
     GH_CMD=(gh repo create "$REPO_NAME")

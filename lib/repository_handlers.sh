@@ -3,11 +3,15 @@
 # -------------------------------------------------
 # Repository Handlers
 # -------------------------------------------------
+
 handle_both_exist() {
 
     echo "Local directory and GitHub repository both exist."
 
-    inspect_existing_repository || return 1
+    inspect_existing_repository || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
 
 
     # -------------------------------------------------
@@ -21,6 +25,8 @@ handle_both_exist() {
 
         print_info "Action" \
             "No automatic synchronization will be performed."
+
+        EXECUTION_RESULT="no_changes"
 
         return 0
 
@@ -41,6 +47,8 @@ handle_both_exist() {
             print_info "Action" \
                 "Git initialization is required before synchronization."
 
+            EXECUTION_RESULT="no_changes"
+
             ;;
 
         no_history)
@@ -50,6 +58,8 @@ handle_both_exist() {
 
             print_info "Action" \
                 "A commit is required before synchronization."
+
+            EXECUTION_RESULT="no_changes"
 
             ;;
 
@@ -69,6 +79,8 @@ handle_both_exist() {
                     print_info "Action" \
                         "Target GitHub repository can be configured as origin."
 
+                    EXECUTION_RESULT="no_changes"
+
                     ;;
 
                 different)
@@ -78,6 +90,8 @@ handle_both_exist() {
 
                     print_info "Action" \
                         "Existing origin must be explicitly replaced."
+
+                    EXECUTION_RESULT="no_changes"
 
                     ;;
 
@@ -97,6 +111,8 @@ handle_both_exist() {
                             print_info "Action" \
                                 "No synchronization required."
 
+                            EXECUTION_RESULT="no_changes"
+
                             ;;
 
                         local_ahead)
@@ -109,12 +125,19 @@ handle_both_exist() {
                             if confirm_action \
                                 "Push local commits to GitHub?"; then
 
-                                push_to_github || return 1
+                                if push_to_github; then
+                                    EXECUTION_RESULT="success"
+                                else
+                                    EXECUTION_RESULT="failed"
+                                    return 1
+                                fi
 
                             else
 
                                 print_info "Action" \
                                     "No changes made."
+
+                                EXECUTION_RESULT="no_changes"
 
                             fi
 
@@ -128,6 +151,8 @@ handle_both_exist() {
                             print_info "Action" \
                                 "Pull/reconciliation is required before pushing."
 
+                            EXECUTION_RESULT="no_changes"
+
                             ;;
 
                         diverged)
@@ -137,6 +162,8 @@ handle_both_exist() {
 
                             print_info "Action" \
                                 "Manual reconciliation is required."
+
+                            EXECUTION_RESULT="no_changes"
 
                             ;;
 
@@ -148,6 +175,8 @@ handle_both_exist() {
                             print_info "Action" \
                                 "Manual reconciliation is required."
 
+                            EXECUTION_RESULT="no_changes"
+
                             ;;
 
                         unknown)
@@ -158,18 +187,45 @@ handle_both_exist() {
                             print_info "Action" \
                                 "Manual inspection is required."
 
+                            EXECUTION_RESULT="no_changes"
+
+                            ;;
+
+                        *)
+
+                            print_error \
+                                "Unknown repository history state."
+
+                            EXECUTION_RESULT="failed"
+
+                            return 1
+
                             ;;
 
                     esac
+
+                    ;;
+
+                *)
+
+                    print_error "Unknown Git remote state."
+
+                    EXECUTION_RESULT="failed"
+
+                    return 1
+
                     ;;
 
             esac
+
             ;;
 
     esac
 
     return 0
 }
+
+
 handle_local_only() {
 
     # -------------------------------------------------
@@ -197,6 +253,8 @@ handle_local_only() {
 
         print_info "Action" "No changes made."
 
+        EXECUTION_RESULT="no_changes"
+
         return 0
 
     fi
@@ -206,14 +264,20 @@ handle_local_only() {
     # Create GitHub repository
     # -------------------------------------------------
 
-    create_github_repository || return 1
+    create_github_repository || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
 
 
     # -------------------------------------------------
     # Prepare existing local project
     # -------------------------------------------------
 
-    prepare_existing_local "$LOCAL_PATH" || return 1
+    prepare_existing_local "$LOCAL_PATH" || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
 
 
     # -------------------------------------------------
@@ -222,12 +286,22 @@ handle_local_only() {
 
     if git -C "$LOCAL_PATH" rev-parse --git-dir >/dev/null 2>&1; then
 
-        configure_existing_git || return 1
+        configure_existing_git || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
     else
 
-        initialize_git || return 1
-        configure_git_remote || return 1
+        initialize_git || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
+
+        configure_git_remote || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
     fi
 
@@ -236,12 +310,23 @@ handle_local_only() {
     # Commit and push
     # -------------------------------------------------
 
-    commit_changes || return 1
-    push_to_github || return 1
+    commit_changes || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
 
+    push_to_github || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
+
+
+    EXECUTION_RESULT="success"
 
     return 0
 }
+
+
 handle_github_only() {
 
     # -------------------------------------------------
@@ -257,11 +342,23 @@ handle_github_only() {
 
     if confirm_action "Clone the GitHub repository locally?"; then
 
-        clone_github_repository || return 1
+        if clone_github_repository; then
+
+            EXECUTION_RESULT="success"
+
+        else
+
+            EXECUTION_RESULT="failed"
+
+            return 1
+
+        fi
 
     else
 
         print_info "Action" "No changes made."
+
+        EXECUTION_RESULT="no_changes"
 
         return 0
 
@@ -270,6 +367,8 @@ handle_github_only() {
 
     return 0
 }
+
+
 handle_neither_exist() {
 
     # -------------------------------------------------
@@ -297,6 +396,8 @@ handle_neither_exist() {
 
         print_info "Action" "No changes made."
 
+        EXECUTION_RESULT="no_changes"
+
         return 0
 
     fi
@@ -306,7 +407,10 @@ handle_neither_exist() {
     # Create GitHub repository
     # -------------------------------------------------
 
-    create_github_repository || return 1
+    create_github_repository || {
+        EXECUTION_RESULT="failed"
+        return 1
+    }
 
 
     # -------------------------------------------------
@@ -315,22 +419,45 @@ handle_neither_exist() {
 
     if [[ "$CREATE_LOCAL" == true ]]; then
 
-        create_local_directory || return 1
+        create_local_directory || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        copy_readme || return 1
+        copy_readme || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        create_gitignore || return 1
+        create_gitignore || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        initialize_git || return 1
+        initialize_git || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        configure_git_remote || return 1
+        configure_git_remote || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        commit_changes || return 1
+        commit_changes || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
-        push_to_github || return 1
+        push_to_github || {
+            EXECUTION_RESULT="failed"
+            return 1
+        }
 
     fi
 
+
+    EXECUTION_RESULT="success"
 
     return 0
 }

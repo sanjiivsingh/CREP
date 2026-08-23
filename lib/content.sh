@@ -23,6 +23,8 @@ copy_readme() {
 
         print_error "README file not found: $README_FILE"
 
+        EXECUTION_RESULT="failed"
+
         return 1
     fi
 
@@ -35,6 +37,8 @@ copy_readme() {
 
         print_info "README file" "copied"
 
+        record_execution_action "README: copied"
+
         return 0
     fi
 
@@ -45,8 +49,12 @@ copy_readme() {
 
     print_error "Failed to copy README file."
 
+    EXECUTION_RESULT="failed"
+
     return 1
 }
+
+
 create_gitignore() {
 
     # -------------------------------------------------
@@ -67,6 +75,8 @@ create_gitignore() {
 
         print_info "Gitignore template" "created"
 
+        record_execution_action "Gitignore: created"
+
         return 0
     fi
 
@@ -77,8 +87,12 @@ create_gitignore() {
 
     print_error "Failed to create .gitignore."
 
+    EXECUTION_RESULT="failed"
+
     return 1
 }
+
+
 commit_changes() {
 
     # -------------------------------------------------
@@ -92,6 +106,8 @@ commit_changes() {
     else
 
         print_error "Failed to stage Git changes."
+
+        EXECUTION_RESULT="failed"
 
         return 1
 
@@ -111,11 +127,15 @@ commit_changes() {
 
             print_info "Git commit" "created initial commit"
 
+            record_execution_action "Git commit: initial commit created"
+
             return 0
 
         fi
 
         print_error "Failed to create initial Git commit."
+
+        EXECUTION_RESULT="failed"
 
         return 1
     fi
@@ -143,7 +163,10 @@ commit_changes() {
 
         print_info "Git commit" "created"
 
+        record_execution_action "Git commit: update created"
+
         return 0
+
     fi
 
 
@@ -152,6 +175,8 @@ commit_changes() {
     # -------------------------------------------------
 
     print_error "Failed to create Git commit."
+
+    EXECUTION_RESULT="failed"
 
     return 1
 }

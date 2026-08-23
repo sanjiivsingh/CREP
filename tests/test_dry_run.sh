@@ -6,6 +6,7 @@ CREP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$CREP_ROOT/lib/state.sh"
 source "$CREP_ROOT/lib/output.sh"
+source "$CREP_ROOT/lib/repository_analysis.sh"
 source "$CREP_ROOT/lib/repository_plan.sh"
 source "$CREP_ROOT/tests/assertions.sh"
 source "$CREP_ROOT/tests/helpers.sh"
@@ -107,6 +108,23 @@ handle_neither_exist() {
 
 
 # -------------------------------------------------
+# Mock repository analysis
+# -------------------------------------------------
+
+inspect_existing_repository() {
+
+    CALL_LOG="${CALL_LOG} inspect_existing_repository"
+
+    EXISTING_GIT_STATUS="exists"
+    EXISTING_WORKTREE_STATUS="clean"
+    EXISTING_ORIGIN_STATUS="target"
+    EXISTING_HISTORY_STATUS="synchronized"
+
+    return 0
+}
+
+
+# -------------------------------------------------
 # Test header
 # -------------------------------------------------
 
@@ -149,7 +167,7 @@ assert_contains \
 assert_contains \
     "Dry-run states that no changes will be performed" \
     "$output" \
-    "No repository changes will be performed."
+    "No changes were made."
 
 assert_equals \
     "Dry-run does not call neither-exist handler" \
@@ -252,6 +270,16 @@ assert_contains \
     "Dry-run identifies both repositories exist" \
     "$output" \
     "Local directory and GitHub repository both exist."
+
+assert_contains \
+    "Dry-run reports synchronized history" \
+    "$output" \
+    "No action required."
+
+assert_contains \
+    "Dry-run analyzes existing repository" \
+    "$output" \
+    "No action required."
 
 assert_equals \
     "Dry-run does not call both-exist handler" \

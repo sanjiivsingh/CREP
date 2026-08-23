@@ -7,7 +7,10 @@
 # shellcheck disable=SC2034
 initialize_state() {
 
+    # -------------------------------------------------
     # Configuration
+    # -------------------------------------------------
+
     REPO_NAME=""
     VISIBILITY="public"
     README_FILE=""
@@ -17,19 +20,43 @@ initialize_state() {
     LOCAL_PATH=""
     GITHUB_USER=""
 
+
+    # -------------------------------------------------
     # CLI action
+    # -------------------------------------------------
+
     CLI_ACTION="run"
 
+
+    # -------------------------------------------------
     # Execution mode
+    # -------------------------------------------------
+
     DRY_RUN=false
 
+
+    # -------------------------------------------------
     # Repository state
+    # -------------------------------------------------
+
     LOCAL_STATUS=""
     GITHUB_STATUS=""
 
+
+    # -------------------------------------------------
     # Existing repository analysis
+    # -------------------------------------------------
+
     EXISTING_GIT_STATUS=""
     EXISTING_WORKTREE_STATUS=""
     EXISTING_ORIGIN_STATUS=""
     EXISTING_HISTORY_STATUS=""
+
+
+    # -------------------------------------------------
+    # Execution summary
+    # -------------------------------------------------
+
+    EXECUTION_RESULT=""
+    EXECUTION_ACTIONS=""
 }

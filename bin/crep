@@ -51,7 +51,12 @@ run_crep() {
     determine_repository_state || return 1
     show_repository_state
 
-    execute_repository_plan || return 1
+    execute_repository_plan || {
+        show_execution_summary
+        return 1
+    }
+
+    show_execution_summary
 }
 main() {
 
