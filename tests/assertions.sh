@@ -268,3 +268,21 @@ assert_contains() {
         TEST_FAILURES=$((TEST_FAILURES + 1))
     fi
 }
+
+assert_executable() {
+
+    local description="$1"
+    local file="$2"
+
+    if [[ -x "$file" ]]; then
+
+        printf 'PASS: %s\n' "$description"
+
+    else
+
+        printf 'FAIL: %s\n' "$description"
+        printf '  Expected executable: %s\n' "$file"
+
+        exit 1
+    fi
+}
