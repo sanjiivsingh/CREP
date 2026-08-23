@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -u
+
+case "$*" in
+
+    "api user --jq .login")
+        printf '%s\n' "test-user"
+        ;;
+
+    "api --include --silent repos/test-user/existing-repo")
+        printf '%s\n' "HTTP/2 200"
+        ;;
+
+    "api --include --silent repos/test-user/missing-repo")
+        printf '%s\n' "HTTP/2 404"
+        ;;
+
+    "api --include --silent repos/test-user/error-repo")
+        printf '%s\n' "HTTP/2 500"
+        ;;
+
+    *)
+        printf 'Unexpected gh command: %s\n' "$*" >&2
+        exit 1
+        ;;
+
+esac
