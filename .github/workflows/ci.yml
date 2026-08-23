@@ -20,13 +20,22 @@ permissions:
 jobs:
 
   test:
-    name: Test CREP
-    runs-on: ubuntu-latest
+    name: Test CREP (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
 
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Set executable permissions
         shell: bash
@@ -39,25 +48,24 @@ jobs:
       - name: Show environment
         shell: bash
         run: |
-          echo "Operating System: $(uname -s)"
+          echo "========================================"
+          echo "CREP CI Environment"
+          echo "========================================"
+          echo "Runner OS: $RUNNER_OS"
+          echo "OS: $(uname -s)"
           echo "Architecture: $(uname -m)"
+          echo
           echo "Bash:"
           bash --version | head -n 1
+          echo
           echo "Git:"
           git --version
+          echo "========================================"
 
       - name: Run test suite
         shell: bash
         run: |
           ./tests/test_runner.sh
-
-      - name: Run ShellCheck
-        shell: bash
-        run: |
-          shellcheck -x \
-            tests/*.sh \
-            install.sh \
-            uninstall.sh
 
       - name: CLI version smoke test
         shell: bash
@@ -68,3 +76,21 @@ jobs:
         shell: bash
         run: |
           ./bin/crep --help
+
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        shell: bash
+        run: |
+          shellcheck -x \
+            tests/*.sh \
+            install.sh \
+            uninstall.sh
