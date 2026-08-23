@@ -20,6 +20,9 @@ initialize_state() {
     # CLI action
     CLI_ACTION="run"
 
+    # Execution mode
+    DRY_RUN=false
+
     # Repository state
     LOCAL_STATUS=""
     GITHUB_STATUS=""

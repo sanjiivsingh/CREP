@@ -86,6 +86,13 @@ parse_arguments() {
 
                 ;;
 
+            --dry-run)
+
+                DRY_RUN=true
+                shift
+
+                ;;
+
             -h|--help)
 
                 CLI_ACTION="help"
@@ -94,6 +101,7 @@ parse_arguments() {
                 ;;
 
             --version)
+
                 CLI_ACTION="version"
                 return 0
 
