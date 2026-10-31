@@ -531,9 +531,11 @@ Please preserve CREP's core principles:
 
 ### Sanjeev Singh
 
-**DevOps Engineer | Azure | Terraform | GitHub Actions | Bash**
+**Senior Azure Cloud Architect & DevSecOps Platform Engineer**
 
-CREP is part of my ongoing work in building practical DevOps automation tools and learning through real engineering projects.
+CREP is part of my ongoing work in building deterministic infrastructure automation, developer tooling, and verifiable Git workflows.
+
+🌐 **Portfolio:** [sanjeevsingh.oneps.in](https://sanjeevsingh.oneps.in)
 
 🔗 **GitHub:** [github.com/sanjiivsingh](https://github.com/sanjiivsingh)
 
